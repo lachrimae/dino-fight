@@ -1,4 +1,4 @@
-//! Pong Tutorial 1
+extern crate amethyst;
 
 use amethyst::{
     prelude::*,
@@ -9,3 +9,7 @@ use amethyst::{
     },
     utils::application_root_dir,
 };
+
+fn main() -> Result<(), std::io::Error> {
+    Ok(())
+}

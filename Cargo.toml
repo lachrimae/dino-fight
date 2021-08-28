@@ -4,4 +4,4 @@ version = "0.1.0"    # the current version, obeying semver
 authors = ["Curran McConnell <curran.mcconnell@protonmail.com>"]
 
 [dependencies]
-amethyst = "0.15.3"
+amethyst = {version = "0.15.2", features = ["vulkan"]}
