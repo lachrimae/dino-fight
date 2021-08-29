@@ -11,12 +11,12 @@ pub struct HeroMovementSystem {}
 impl<'s> System<'s> for HeroMovementSystem {
     type SystemData = (
         WriteStorage<'s, Transform>,
-        ReadStorage<'s, Hero>,
+        WriteStorage<'s, Hero>,
         Read<'s, InputHandler<StringBindings>>,
     );
 
-    fn run(&mut self, (mut transforms, heroes, input): Self::SystemData) {
-        for (hero, transform) in (&heroes, &mut transforms).join() {
+    fn run(&mut self, (mut transforms, mut heroes, input): Self::SystemData) {
+        for (hero, transform) in (&mut heroes, &mut transforms).join() {
             let rx = input.axis_value("hero_x").unwrap_or(0.);
             let ry = input.axis_value("hero_y").unwrap_or(0.);
 
@@ -29,8 +29,8 @@ impl<'s> System<'s> for HeroMovementSystem {
                 transform.prepend_translation_x(dx);
                 transform.prepend_translation_y(dy);
 
-//                hero.dx = dx;
-//                hero.dy = dy;
+                hero.dino.dx = dx;
+                hero.dino.dy = dy;
             }
         }
     }

@@ -24,8 +24,7 @@ impl Dino {
         Dino {
             width: DINO_WIDTH,
             height: DINO_HEIGHT,
-            dx,
-            dy,
+            dx, dy,
         }
     }
 }
@@ -41,7 +40,9 @@ impl Component for Dino {
 }
 
 #[derive(Default)]
-pub struct Hero(Dino);
+pub struct Hero {
+    pub dino: Dino
+}
 
 impl Component for Hero {
     type Storage = DenseVecStorage<Self>;
