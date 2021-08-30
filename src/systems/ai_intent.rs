@@ -5,7 +5,9 @@ use amethyst::{
     input::{InputHandler, StringBindings},
 };
 
-use crate::dino::{Hero, Dino, DinoState};
+use crate::dino::{Dino, DinoState, Team};
+use std::cmp;
+use geometry;
 
 pub struct HeroMovementSystem {}
 
@@ -18,44 +20,34 @@ impl<'s> System<'s> for HeroMovementSystem {
         Read<'s, Time>,
     );
 
-    fn run(&mut self, (dinos, transforms, time, mut aiIntent): Self::SystemData) {
-        for (_hero, dino, transform) in (&heroes, &mut dinos, &mut transforms).join() {
-
-            let r_bonk = input.action_is_down("bonk").unwrap_or(false);
-            if r_bonk && dino.state == DinoState::Normal {
-                dino.state = DinoState::Bonking;
-                dino.last_state_transition = time.frame_number();
-            }
-
-            let (rx, ry) = if dino.state == DinoState::Bonking {
-                (0., 0.)
-            } else {
-                let rx = input.axis_value("hero_x").unwrap_or(0.);
-                let ry = input.axis_value("hero_y").unwrap_or(0.);
-                (rx, ry)
-            };
-
-            if rx != 0.0 || ry != 0.0 {
-                let denominator = (rx.powf(2.) + ry.powf(2.)).sqrt();
-
-                let dx = rx / denominator;
-                let dy = ry / denominator;
-
-
-                transform.prepend_translation_x(dx);
-                transform.prepend_translation_y(dy);
-
-                if dx < 0. {
-                    transform.set_rotation_y_axis(std::f32::consts::PI);
-                } else if dx > 0. {
-                    transform.set_rotation_y_axis(0.);
+    fn run(&mut self, (dinos, transforms, time, mut ai_intents): Self::SystemData) {
+        for (dino, transform, health_bar, ai_intent) in (&dinos, &transforms, &health_bars, &time, &mut ai_intent).join() {
+            let position = transform.translation();
+            match (&health_bars).join().filter(|victim| victim.allegiance == Team::Player).min_by(|victim| geometry::distance(position, victim.rect)) {
+                None => {
+                    ai_intent.state = DinoState::Normal,
+                    ai_intent.rx = position[0];
+                    ai_intent.ry = position[1];
+                },
+                Some(victim) => {
+                    let (magnitude, direction) = geometry::distance(transform.translation(), potential_victim);
+                    if health_bar.value > 50 {
+                        // The attack policy
+                        if magnitude > 10 {
+                            ai_intent.state = DinoState::Normal,
+                            ai_intent.rx = magnitude * direction[0];
+                            ai_intent.ry = magnitude * direction[1];
+                        } else {
+                            ai_intent.state = DinoState::Bonking;
+                            ai_intent.rx = position[0];
+                            ai_intent.ry = position[1];
+                        }
+                    } else {
+                        ai_intent.state = DinoState::Normal,
+                        ai_intent.rx = -magnitude * direction[0];
+                        ai_intent.ry = -magnitude * direction[1];
+                    }
                 }
-
-                dino.dx = dx;
-                dino.dy = dy;
-            } else {
-                dino.dx = 0.;
-                dino.dy = 0.;
             }
         }
     }
