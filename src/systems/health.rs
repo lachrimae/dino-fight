@@ -1,10 +1,10 @@
 use amethyst::{
     core::timing::Time,
-    ecs::{Join, Read, ReadStorage, WriteStorage, System},
-    renderer::SpriteRender,
+    ecs::{Entities, Join, Read, ReadStorage, WriteStorage, System},
 };
 
-use crate::dino::{Team, Dino, HealthBar, DamageEffect};
+use crate::dino::{HealthBar, DamageEffect};
+use crate::geometry;
 
 pub struct HealthSystem {}
 
@@ -12,30 +12,31 @@ impl<'s> System<'s> for HealthSystem {
     type SystemData = (
         ReadStorage<'s, DamageEffect>,
         WriteStorage<'s, HealthBar>,
-        WriteStorage<'s, Dino>,
-        Read<'s, Time>
+        Read<'s, Time>,
+        Entities<'s>,
     );
 
-    fn run(&mut self, (damageEffects, mut healthBars, mut dinos, time): Self::SystemData) {
-        for damageEffect in (&damageEffects).join() {
-            for (healthBar, _dino) in (&mut healthBars, &mut dinos).join() {
-                let overlapping = overlapRect(damageEffect.rect, healthBar.rect);
-                let hostile = damageEffect.targets == healthBar.allegiance;
+    fn run(&mut self, (damage_effects, mut health_bars, time, entities): Self::SystemData) {
+        for damage_effect in (&damage_effects).join() {
+            for (health_bar, entity) in (&mut health_bars, &*entities).join() {
+                let overlapping = geometry::rects_overlap(&damage_effect.rect, &health_bar.rect);
+                let hostile = damage_effect.targets == health_bar.allegiance;
                 if overlapping && hostile {
-                    if healthBar.damageableAt <= time.frame_number() {
-                        if damageEffect.value >= healthBar.value {
-                            healthBar.value = 0;
-                            // delete the dino
+                    let frame_num = time.frame_number();
+                    if health_bar.damageable_at <= frame_num {
+                        if damage_effect.value >= health_bar.value {
+                            match entities.delete(entity) {
+                                Ok(_) => {},
+                                Err(err) => println!("{:?}", err),
+                            }
                         } else {
-                            healthBar.value = std::cmp::max(0, healthBar.value - damageEffect.value);
+                            health_bar.value = health_bar.value - damage_effect.value;
+                            health_bar.damageable_at = frame_num + 100;
+                            println!("A health bar dropped to {:?}", health_bar.value);
                         }
                     }
                 }
             }
         }
     }
-}
-
-fn overlapRect(a: (), b: ()) -> bool {
-    true
 }

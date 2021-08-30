@@ -1,10 +1,12 @@
 use amethyst::{
     assets::{AssetStorage, Loader, Handle},
     core::transform::Transform,
-    ecs::{Component, DenseVecStorage},
+    ecs::{Component, DenseVecStorage, VecStorage},
     prelude::*,
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
 };
+
+use crate::geometry::Rectangle;
 
 pub const ARENA_HEIGHT: f32 = 100.0;
 pub const ARENA_WIDTH: f32 = 100.0;
@@ -32,6 +34,14 @@ pub enum DinoState {
 pub enum Team {
     Player,
     Enemy,
+}
+
+pub struct DespawnTimer {
+    pub deadline: u64,
+}
+
+impl Component for DespawnTimer {
+    type Storage = VecStorage<Self>;
 }
 
 pub struct Dino {
@@ -67,9 +77,9 @@ impl Component for Dino {
 
 pub struct HealthBar {
     pub value: u32,
-    pub damageableAt: u64,
+    pub damageable_at: u64,
     pub allegiance: Team,
-    pub rect: ()
+    pub rect: Rectangle,
 }
 
 impl Component for HealthBar {
@@ -79,7 +89,7 @@ impl Component for HealthBar {
 pub struct DamageEffect {
     pub value: u32,
     pub targets: Team,
-    pub rect: (),
+    pub rect: Rectangle,
 }
 
 impl Component for DamageEffect {
@@ -142,9 +152,12 @@ fn initialise_hero(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) 
         .with(Dino::default())
         .with(HealthBar {
             value: 150,
-            damageableAt: 0,
+            damageable_at: 0,
             allegiance: Team::Player,
-            rect: (),
+            rect: Rectangle {
+                x1: 0., x2: ARENA_WIDTH,
+                y1: 0., y2: ARENA_HEIGHT,
+            },
         })
         .with(transform)
         .with(animation)
@@ -169,9 +182,12 @@ fn initialise_dinos(world: &mut World, handle1: Handle<SpriteSheet>, _handle2: H
         .with(Dino::default())
         .with(HealthBar {
             value: 100,
-            rect: (),
+            rect: Rectangle {
+                x1: 0., x2: ARENA_WIDTH,
+                y1: 0., y2: ARENA_HEIGHT,
+            },
             allegiance: Team::Enemy,
-            damageableAt: 0,
+            damageable_at: 0,
         })
         .with(transform)
         .with(animation)
