@@ -12,11 +12,29 @@ pub const ARENA_WIDTH: f32 = 100.0;
 pub const DINO_HEIGHT: f32 = 24.0;
 pub const DINO_WIDTH: f32 = 24.0;
 
+pub struct Animation {
+    pub frames: i32,
+    pub frame_duration: u64,
+    pub first_sprite_index: usize,
+}
+
+impl Component for Animation {
+    type Storage = DenseVecStorage<Self>;
+}
+
+#[derive(PartialEq, Eq)]
+pub enum DinoState {
+    Normal,
+    Bonking,
+}
+
 pub struct Dino {
     pub width: f32,
     pub height: f32,
     pub dx: f32,
     pub dy: f32,
+    pub state: DinoState,
+    pub last_state_transition: u64,
 }
 
 impl Dino {
@@ -25,6 +43,8 @@ impl Dino {
             width: DINO_WIDTH,
             height: DINO_HEIGHT,
             dx, dy,
+            state: DinoState::Normal,
+            last_state_transition: 0,
         }
     }
 }
@@ -40,9 +60,7 @@ impl Component for Dino {
 }
 
 #[derive(Default)]
-pub struct Hero {
-    pub dino: Dino
-}
+pub struct Hero;
 
 impl Component for Hero {
     type Storage = DenseVecStorage<Self>;
@@ -83,17 +101,32 @@ fn initialise_hero(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) 
     let mut transform = Transform::default();
     transform.set_translation_xyz(DINO_WIDTH * 0.5, ARENA_HEIGHT / 2.0, 0.0);
 
+    let animation = Animation {
+        frames: 4,
+        frame_duration: 10,
+        first_sprite_index: 0,
+    };
+
+
     world
         .create_entity()
         .with(sprite_render)
         .with(Hero::default())
+        .with(Dino::default())
         .with(transform)
+        .with(animation)
         .build();
 }
 
 fn initialise_dinos(world: &mut World, handle1: Handle<SpriteSheet>, _handle2: Handle<SpriteSheet>, _handle3: Handle<SpriteSheet>) {
     let sprite_render = SpriteRender::new(handle1, 0);
     let mut transform = Transform::default();
+
+    let animation = Animation {
+        frames: 4,
+        frame_duration: 10,
+        first_sprite_index: 0,
+    };
 
     transform.set_translation_xyz(ARENA_WIDTH - DINO_WIDTH * 0.5, ARENA_HEIGHT / 2.0, 0.0);
 
@@ -102,6 +135,7 @@ fn initialise_dinos(world: &mut World, handle1: Handle<SpriteSheet>, _handle2: H
         .with(sprite_render)
         .with(Dino::default())
         .with(transform)
+        .with(animation)
         .build();
 }
 

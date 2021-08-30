@@ -39,6 +39,7 @@ fn main() -> amethyst::Result<()> {
         )?
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
+        .with(systems::DinoAnimationSystem {}, "dino_animation_system", &[])
         .with(
             systems::HeroMovementSystem {},
             "hero_movement_system",
