@@ -33,7 +33,7 @@ impl<'s> System<'s> for DinoAnimationSystem {
                 animation.frames = 4;
                 animation.frame_duration = 5;
                 animation.first_sprite_index = 10;
-            } else if dino.dx != 0. || dino.dy != 0. {
+            } else if dino.last_change_in_loc.norm() > 0. {
                 animation.frames = 6;
                 animation.frame_duration = 5;
                 animation.first_sprite_index = 4;
@@ -55,8 +55,6 @@ impl<'s> System<'s> for DinoAnimationSystem {
                         let width = 4.;
                         let height = 4.;
                         let pos = transform.translation();
-                        println!("Making a damage effect!");
-                        println!("centered at {:?}", pos);
                         entities.build_entity()
                             .with(
                                 DamageEffect {

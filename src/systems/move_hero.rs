@@ -1,6 +1,7 @@
 use amethyst::{
     core::transform::Transform,
     core::timing::Time,
+    core::math::Vector3,
     ecs::{Join, Read, ReadStorage, System, WriteStorage},
     input::{InputHandler, StringBindings},
 };
@@ -27,56 +28,47 @@ impl<'s> System<'s> for HeroMovementSystem {
                 dino.last_state_transition = time.frame_number();
             }
 
-            let (rdx, rdy) = if dino.state == DinoState::Bonking {
-                (0., 0.)
+            let rd_pos = if dino.state == DinoState::Bonking {
+                Vector3::new(0., 0., 0.)
             } else {
                 let rdx = input.axis_value("hero_x").unwrap_or(0.);
                 let rdy = input.axis_value("hero_y").unwrap_or(0.);
-                (rdx, rdy)
+                Vector3::new(rdx, rdy, 0.)
             };
 
-            if rdx != 0.0 || rdy != 0.0 {
-                let denominator = (rdx.powf(2.) + rdy.powf(2.)).sqrt();
-
-                let rdx = rdx / denominator;
-                let rdy = rdy / denominator;
-
-                let (dx, dy) = {
-                    let &vec = transform.translation();
-                    let (x, y) = (vec[0], vec[1]);
-                    let dx = if x + rdx < 0. {
-                        -x
-                    } else if x + rdx > ARENA_WIDTH {
-                        ARENA_WIDTH - x
-                    } else {
-                        rdx
-                    };
-
-                    let dy = if y + rdy < 0. {
-                        -y
-                    } else if y + rdy > ARENA_HEIGHT {
-                        ARENA_HEIGHT - y
-                    } else {
-                        rdy
-                    };
-                    (dx, dy)
+            let d_pos = rd_pos.try_normalize(0.).unwrap_or(Vector3::new(0., 0., 0.));
+            // bounds checking
+            let translation = {
+                let &pos = transform.translation();
+                let (x, y) = (pos[0], pos[1]);
+                let (dx, dy) = (d_pos[0], d_pos[1]);
+                let dx = if x + dx < 0. {
+                    -x
+                } else if x + dx > ARENA_WIDTH {
+                    ARENA_WIDTH - x
+                } else {
+                    dx
                 };
 
-                transform.prepend_translation_x(dx);
-                transform.prepend_translation_y(dy);
-
-                if dx < 0. {
-                    transform.set_rotation_y_axis(std::f32::consts::PI);
-                } else if dx > 0. {
-                    transform.set_rotation_y_axis(0.);
-                }
-
-                dino.dx = dx;
-                dino.dy = dy;
-            } else {
-                dino.dx = 0.;
-                dino.dy = 0.;
+                let dy = if y + dy < 0. {
+                    -y
+                } else if y + dy > ARENA_HEIGHT {
+                    ARENA_HEIGHT - y
+                } else {
+                    dy
+                };
+                Vector3::new(dx, dy, 0.)
+            };
+            //
+            // make character face correct direction
+            if translation[0] < 0. {
+                transform.set_rotation_y_axis(std::f32::consts::PI);
+            } else if translation[0] > 0. {
+                transform.set_rotation_y_axis(0.);
             }
+
+            transform.append_translation(translation);
+            dino.last_change_in_loc = translation;
         }
     }
 }

@@ -1,6 +1,7 @@
 use amethyst::{
     assets::{AssetStorage, Loader, Handle},
     core::transform::Transform,
+    core::math::Vector3,
     ecs::{Component, DenseVecStorage, VecStorage},
     prelude::*,
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
@@ -38,6 +39,13 @@ pub enum DinoState {
     Bonking,
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub enum VectorKind {
+    Position,
+    Velocity,
+    Acceleration,
+}
+
 #[derive(PartialEq, Eq)]
 pub enum Team {
     Player,
@@ -47,8 +55,8 @@ pub enum Team {
 #[derive(Debug)]
 pub struct AiIntent {
     pub state: DinoState,
-    pub rx: f32,
-    pub ry: f32,
+    pub vec_kind: VectorKind,
+    pub requested_vec: Vector3<f32>,
 }
 
 impl Component for AiIntent {
@@ -66,18 +74,17 @@ impl Component for DespawnTimer {
 pub struct Dino {
     pub width: f32,
     pub height: f32,
-    pub dx: f32,
-    pub dy: f32,
+    pub last_change_in_loc: Vector3<f32>,
     pub state: DinoState,
     pub last_state_transition: u64,
 }
 
 impl Dino {
-    fn new(dx: f32, dy: f32) -> Dino {
+    fn new() -> Dino {
         Dino {
             width: DINO_WIDTH,
             height: DINO_HEIGHT,
-            dx, dy,
+            last_change_in_loc: Vector3::new(0., 0., 0.),
             state: DinoState::Normal,
             last_state_transition: 0,
         }
@@ -86,7 +93,7 @@ impl Dino {
 
 impl Default for Dino {
     fn default() -> Dino {
-        Dino::new(0., 0.)
+        Dino::new()
     }
 }
 
@@ -134,7 +141,8 @@ impl SimpleState for DinoFight {
         let mort_handle = load_sprite_sheet(world, "mort");
         let tard_handle = load_sprite_sheet(world, "tard");
 
-        world.register::<Dino>();
+        // Hero we have to somehow pass the hero we initialise into the
+        // HeroIntentSystem.
         initialise_hero(world, doux_handle);
         initialise_dinos(world, vita_handle, mort_handle, tard_handle);
         initialise_camera(world);
@@ -195,8 +203,8 @@ fn initialise_dinos(world: &mut World, handle1: Handle<SpriteSheet>, _handle2: H
     let pos = transform.translation();
     let intent = AiIntent {
         state: DinoState::Normal,
-        rx: pos[0],
-        ry: pos[1],
+        requested_vec: pos.clone(),
+        vec_kind: VectorKind::Velocity,
     };
 
     transform.set_translation_xyz(ARENA_WIDTH - DINO_WIDTH * 0.5, ARENA_HEIGHT / 2.0, 0.0);

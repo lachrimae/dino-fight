@@ -1,4 +1,4 @@
-use std::f32::NAN;
+use amethyst::core::math::Vector3;
 
 // rectangles should have x1 < x2, y1 < y2.
 pub struct Rectangle {
@@ -8,47 +8,37 @@ pub struct Rectangle {
     pub y2: f32,
 }
 
-pub struct Point {
+pub struct Vector {
     pub x: f32,
     pub y: f32,
-}
-
-pub struct DVector {
-    pub magnitude: f32,
-    pub direction: Point,
 }
 
 pub fn rects_overlap(a: &Rectangle, b: &Rectangle) -> bool {
     let x_compatible = a.x1 < b.x2 && a.x2 > b.x1;
     let y_compatible = a.y1 < a.y2 && a.y2 > b.y1;
-    x_compatible && y_compatible
+    x_compatible && y_compatible 
 }
 
-pub fn distance(p: &[f32], r: &Rectangle) -> DVector {
-    let dx = if p[0] < r.x1 {
-        r.x1 - p[0]
-    } else if p[0] <= r.x2 {
-        0.
+pub fn closest_point_on_rect(pos: &Vector3<f32>, rect: &Rectangle) -> Vector3<f32> {
+    let x = if pos[0] < rect.x1 {
+        rect.x1
+    } else if pos[0] <= rect.x2 {
+        pos[0]
     } else {
-        r.x2 - p[0]
-    };
-    let dy = if p[1] < r.y1 {
-        r.y1 - p[1]
-    } else if p[1] <= r.y2 {
-        0.
-    } else {
-        r.y2 - p[1]
+        rect.x2
     };
 
-    let magnitude = (dx.powi(2) + dy.powi(2)).sqrt();
-    let direction = if magnitude == 0. || magnitude == NAN {
-        Point { x: 1., y: 0. }
+    let y = if pos[1] < rect.y1 {
+        rect.y1
+    } else if pos[1] <= rect.y2 {
+        pos[1]
     } else {
-        Point { x: dx / magnitude, y: dy / magnitude }
+        rect.y2
     };
 
-    DVector {
-        magnitude,
-        direction
-    }
+    Vector3::new(x, y, 0.)
+}
+
+pub fn distance(pos: &Vector3<f32>, rect: &Rectangle) -> f32 {
+    (pos - closest_point_on_rect(pos, rect)).norm()
 }
