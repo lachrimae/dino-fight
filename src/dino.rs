@@ -32,7 +32,7 @@ impl Component for Animation {
     type Storage = DenseVecStorage<Self>;
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum DinoState {
     Normal,
     Bonking,
@@ -44,10 +44,15 @@ pub enum Team {
     Enemy,
 }
 
+#[derive(Debug)]
 pub struct AiIntent {
-    state: DinoState,
-    rx: f32,
-    ry: f32,
+    pub state: DinoState,
+    pub rx: f32,
+    pub ry: f32,
+}
+
+impl Component for AiIntent {
+    type Storage = VecStorage<Self>;
 }
 
 pub struct DespawnTimer {
@@ -158,7 +163,6 @@ fn initialise_hero(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) 
         first_sprite_index: 0,
     };
 
-
     world
         .create_entity()
         .with(sprite_render)
@@ -188,6 +192,13 @@ fn initialise_dinos(world: &mut World, handle1: Handle<SpriteSheet>, _handle2: H
         first_sprite_index: 0,
     };
 
+    let pos = transform.translation();
+    let intent = AiIntent {
+        state: DinoState::Normal,
+        rx: pos[0],
+        ry: pos[1],
+    };
+
     transform.set_translation_xyz(ARENA_WIDTH - DINO_WIDTH * 0.5, ARENA_HEIGHT / 2.0, 0.0);
 
     world
@@ -204,6 +215,7 @@ fn initialise_dinos(world: &mut World, handle1: Handle<SpriteSheet>, _handle2: H
             damageable_at: 0,
         })
         .with(transform)
+        .with(intent)
         .with(animation)
         .build();
 }

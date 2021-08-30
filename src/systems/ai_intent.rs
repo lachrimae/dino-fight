@@ -1,54 +1,62 @@
 use amethyst::{
     core::transform::Transform,
-    core::timing::Time,
-    ecs::{Join, Read, ReadStorage, System, WriteStorage},
-    input::{InputHandler, StringBindings},
+    ecs::{Join, ReadStorage, System, WriteStorage},
 };
 
-use crate::dino::{Dino, DinoState, Team};
-use std::cmp;
+use dino::{AiIntent, Dino, DinoState, HealthBar, Team};
 use geometry;
 
-pub struct HeroMovementSystem {}
+use std::cmp::Ordering;
 
-impl<'s> System<'s> for HeroMovementSystem {
+pub struct AiIntentSystem {}
+
+impl<'s> System<'s> for AiIntentSystem {
     type SystemData = (
         ReadStorage<'s, Dino>,
         ReadStorage<'s, Transform>,
         ReadStorage<'s, HealthBar>,
-        WriteStorage<'s, AiIntent>
-        Read<'s, Time>,
+        WriteStorage<'s, AiIntent>,
     );
 
-    fn run(&mut self, (dinos, transforms, time, mut ai_intents): Self::SystemData) {
-        for (dino, transform, health_bar, ai_intent) in (&dinos, &transforms, &health_bars, &time, &mut ai_intent).join() {
-            let position = transform.translation();
-            match (&health_bars).join().filter(|victim| victim.allegiance == Team::Player).min_by(|victim| geometry::distance(position, victim.rect)) {
+    fn run(&mut self, (dinos, transforms, health_bars, mut ai_intents): Self::SystemData) {
+        for (dino, transform, health_bar, ai_intent) in (&dinos, &transforms, &health_bars, &mut ai_intents).join() {
+            let position = &transform.translation().as_slice();
+            match (&health_bars)
+                .join()
+                .filter(|adversary| adversary.allegiance == Team::Player)
+                .min_by(|adversary1, adversary2|
+                    geometry::distance(position, &adversary1.rect).magnitude.abs().partial_cmp(
+                        &geometry::distance(position, &adversary2.rect).magnitude.abs()
+                    ).unwrap_or(Ordering::Greater)
+                ) {
                 None => {
-                    ai_intent.state = DinoState::Normal,
+                    ai_intent.state = DinoState::Normal;
                     ai_intent.rx = position[0];
                     ai_intent.ry = position[1];
                 },
-                Some(victim) => {
-                    let (magnitude, direction) = geometry::distance(transform.translation(), potential_victim);
+                Some(adversary) => {
+                    let vector_to_adversary = geometry::distance(transform.translation().as_slice(), &adversary.rect);
+                    let (magnitude, direction) = (vector_to_adversary.magnitude, vector_to_adversary.direction);
                     if health_bar.value > 50 {
                         // The attack policy
-                        if magnitude > 10 {
-                            ai_intent.state = DinoState::Normal,
-                            ai_intent.rx = magnitude * direction[0];
-                            ai_intent.ry = magnitude * direction[1];
+                        if magnitude > 10. {
+                            ai_intent.state = DinoState::Normal;
+                            ai_intent.rx = magnitude * direction.x;
+                            ai_intent.ry = magnitude * direction.y;
                         } else {
                             ai_intent.state = DinoState::Bonking;
                             ai_intent.rx = position[0];
                             ai_intent.ry = position[1];
                         }
                     } else {
-                        ai_intent.state = DinoState::Normal,
-                        ai_intent.rx = -magnitude * direction[0];
-                        ai_intent.ry = -magnitude * direction[1];
+                        // the run away policy
+                        ai_intent.state = DinoState::Normal;
+                        ai_intent.rx = -magnitude * direction.x;
+                        ai_intent.ry = -magnitude * direction.y;
                     }
                 }
             }
+            println!("intent: {:?}", ai_intent);
         }
     }
 }

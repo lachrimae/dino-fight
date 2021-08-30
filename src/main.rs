@@ -41,6 +41,7 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
         .with(systems::DespawnSystem {}, "despawn_system", &[])
+        .with(systems::AiIntentSystem {}, "ai_intent_system", &[])
         .with(systems::DinoAnimationSystem {}, "dino_animation_system", &["despawn_system"])
         .with(
             systems::HeroMovementSystem {},
