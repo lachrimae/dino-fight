@@ -67,7 +67,7 @@ impl<'s> System<'s> for HeroMovementSystem {
                 transform.set_rotation_y_axis(0.);
             }
 
-            transform.append_translation(translation);
+            transform.prepend_translation(translation);
             dino.last_change_in_loc = translation;
         }
     }

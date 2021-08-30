@@ -28,11 +28,11 @@ impl<'s> System<'s> for AiMotionSystem {
                 let old_loc = transform.translation().clone();
                 match ai_intent.vec_kind {
                     VectorKind::Position => {
-                        let acceleration = (old_loc
-                            - ai_intent
-                            .requested_vec
+                        let acceleration = (
+                            old_loc - ai_intent.requested_vec
+                        )
                             .try_normalize(0.)
-                            .unwrap_or(Vector3::new(0., 0., 0.)))
+                            .unwrap_or(Vector3::new(0., 0., 0.))
                             * MAX_DINO_ACCELERATION;
                         update_velocity(&acceleration, &mut dino, &mut transform);
                     },
