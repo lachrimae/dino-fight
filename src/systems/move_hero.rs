@@ -5,7 +5,7 @@ use amethyst::{
     input::{InputHandler, StringBindings},
 };
 
-use crate::dino::{Hero, Dino, DinoState};
+use crate::dino::{Hero, Dino, DinoState, ARENA_HEIGHT, ARENA_WIDTH};
 
 pub struct HeroMovementSystem {}
 
@@ -27,20 +27,40 @@ impl<'s> System<'s> for HeroMovementSystem {
                 dino.last_state_transition = time.frame_number();
             }
 
-            let (rx, ry) = if dino.state == DinoState::Bonking {
+            let (rdx, rdy) = if dino.state == DinoState::Bonking {
                 (0., 0.)
             } else {
-                let rx = input.axis_value("hero_x").unwrap_or(0.);
-                let ry = input.axis_value("hero_y").unwrap_or(0.);
-                (rx, ry)
+                let rdx = input.axis_value("hero_x").unwrap_or(0.);
+                let rdy = input.axis_value("hero_y").unwrap_or(0.);
+                (rdx, rdy)
             };
 
-            if rx != 0.0 || ry != 0.0 {
-                let denominator = (rx.powf(2.) + ry.powf(2.)).sqrt();
+            if rdx != 0.0 || rdy != 0.0 {
+                let denominator = (rdx.powf(2.) + rdy.powf(2.)).sqrt();
 
-                let dx = rx / denominator;
-                let dy = ry / denominator;
+                let rdx = rdx / denominator;
+                let rdy = rdy / denominator;
 
+                let (dx, dy) = {
+                    let &vec = transform.translation();
+                    let (x, y) = (vec[0], vec[1]);
+                    let dx = if x + rdx < 0. {
+                        -x
+                    } else if x + rdx > ARENA_WIDTH {
+                        ARENA_WIDTH - x
+                    } else {
+                        rdx
+                    };
+
+                    let dy = if y + rdy < 0. {
+                        -y
+                    } else if y + rdy > ARENA_HEIGHT {
+                        ARENA_HEIGHT - y
+                    } else {
+                        rdy
+                    };
+                    (dx, dy)
+                };
 
                 transform.prepend_translation_x(dx);
                 transform.prepend_translation_y(dy);

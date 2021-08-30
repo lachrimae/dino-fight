@@ -29,11 +29,11 @@ impl<'s> System<'s> for DinoAnimationSystem {
         for (animation, sprite, dino) in (&mut animations, &mut renders, &mut dinos).join() {
             if dino.state == DinoState::Bonking {
                 animation.frames = 4;
-                animation.frame_duration = 10;
+                animation.frame_duration = 5;
                 animation.first_sprite_index = 10;
             } else if dino.dx != 0. || dino.dy != 0. {
                 animation.frames = 6;
-                animation.frame_duration = 4;
+                animation.frame_duration = 5;
                 animation.first_sprite_index = 4;
             } else {
                 animation.frames = 4;

@@ -17,7 +17,10 @@ impl<'s> System<'s> for DespawnSystem {
     fn run(&mut self, (despawners, time, entities): Self::SystemData) {
         for (despawner, entity) in (&despawners, &*entities).join() {
             if despawner.deadline <= time.frame_number() {
-                entities.delete(entity);
+                match entities.delete(entity) {
+                    Ok(_) => {},
+                    Err(err) => println!("{:?}", err),
+                }
             }
         }
     }
