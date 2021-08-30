@@ -5,9 +5,10 @@ use amethyst::{
     core::math::Vector3,
 };
 
-use dino::{AiIntent, Dino, DinoState, VectorKind};
+use dino::{AiIntent, Dino, DinoState, VectorKind, ARENA_HEIGHT, ARENA_WIDTH};
 
 const MAX_DINO_ACCELERATION: f32 = 1.0;
+const MAX_DINO_VELOCITY: f32 = 1.0;
 
 pub struct AiMotionSystem {}
 
@@ -23,7 +24,8 @@ impl<'s> System<'s> for AiMotionSystem {
     fn run(&mut self, (mut dino, ai_intents, mut transforms, time): Self::SystemData) {
         for (mut dino, ai_intent, mut transform) in (&mut dino, &ai_intents, &mut transforms).join() {
             if ai_intent.state == DinoState::Bonking {
-                dino.last_change_in_loc = Vector3::new(0., 0., 0.);
+                dino.last_change_in_loc[0] = 0.;
+                dino.last_change_in_loc[1] = 0.;
             } else {
                 let old_loc = transform.translation().clone();
                 match ai_intent.vec_kind {
@@ -50,12 +52,44 @@ impl<'s> System<'s> for AiMotionSystem {
 }
 
 fn update_velocity(acceleration: &Vector3<f32>, dino: &mut Dino, transform: &mut Transform) {
-    let mut acceleration = acceleration.clone();
-    let magnitude = acceleration.magnitude();
-    if magnitude > MAX_DINO_ACCELERATION {
-        acceleration = (MAX_DINO_ACCELERATION / magnitude) * acceleration
+    // handle acceleration constraints
+    {
+        // we're going to be mutating this
+        let mut acceleration = acceleration.clone();
+        let magnitude = acceleration.magnitude();
+        if magnitude > MAX_DINO_ACCELERATION {
+            acceleration = (MAX_DINO_ACCELERATION / magnitude) * acceleration
+        }
+        dino.last_change_in_loc = dino.last_change_in_loc + acceleration;
     }
-    dino.last_change_in_loc[0] += acceleration[0];
-    dino.last_change_in_loc[1] += acceleration[1];
-    transform.append_translation(dino.last_change_in_loc);
+
+    // handle velocity constraints
+    {
+        let magnitude = dino.last_change_in_loc.norm();
+        if magnitude > MAX_DINO_VELOCITY {
+            dino.last_change_in_loc = dino.last_change_in_loc * (MAX_DINO_VELOCITY / magnitude);
+        }
+    }
+
+    // handle position constraints
+    {
+        let pos = transform.translation();
+        let hypothetical_pos = pos + dino.last_change_in_loc;
+        dino.last_change_in_loc[0] = if hypothetical_pos[0] < 0. {
+            -pos[0]
+        } else if hypothetical_pos[0] > ARENA_WIDTH {
+            ARENA_WIDTH - pos[0]
+        } else {
+            hypothetical_pos[0]
+        };
+        dino.last_change_in_loc[1] = if hypothetical_pos[1] < 0. {
+            -pos[1]
+        } else if hypothetical_pos[1] > ARENA_WIDTH {
+            ARENA_HEIGHT - pos[1]
+        } else {
+            hypothetical_pos[1]
+        };
+    }
+
+    transform.prepend_translation(dino.last_change_in_loc);
 }
