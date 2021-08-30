@@ -39,7 +39,7 @@ impl<'s> System<'s> for AiIntentSystem {
                     let (magnitude, direction) = (vector_to_adversary.magnitude, vector_to_adversary.direction);
                     if health_bar.value > 50 {
                         // The attack policy
-                        if magnitude > 10. {
+                        if magnitude > 2. {
                             ai_intent.state = DinoState::Normal;
                             ai_intent.rx = magnitude * direction.x;
                             ai_intent.ry = magnitude * direction.y;
