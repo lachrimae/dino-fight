@@ -28,6 +28,12 @@ pub enum DinoState {
     Bonking,
 }
 
+#[derive(PartialEq, Eq)]
+pub enum Team {
+    Player,
+    Enemy,
+}
+
 pub struct Dino {
     pub width: f32,
     pub height: f32,
@@ -56,6 +62,27 @@ impl Default for Dino {
 }
 
 impl Component for Dino {
+    type Storage = DenseVecStorage<Self>;
+}
+
+pub struct HealthBar {
+    pub value: u32,
+    pub damageableAt: u64,
+    pub allegiance: Team,
+    pub rect: ()
+}
+
+impl Component for HealthBar {
+    type Storage = DenseVecStorage<Self>;
+}
+
+pub struct DamageEffect {
+    pub value: u32,
+    pub targets: Team,
+    pub rect: (),
+}
+
+impl Component for DamageEffect {
     type Storage = DenseVecStorage<Self>;
 }
 
@@ -113,6 +140,12 @@ fn initialise_hero(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) 
         .with(sprite_render)
         .with(Hero::default())
         .with(Dino::default())
+        .with(HealthBar {
+            value: 150,
+            damageableAt: 0,
+            allegiance: Team::Player,
+            rect: (),
+        })
         .with(transform)
         .with(animation)
         .build();
@@ -134,6 +167,12 @@ fn initialise_dinos(world: &mut World, handle1: Handle<SpriteSheet>, _handle2: H
         .create_entity()
         .with(sprite_render)
         .with(Dino::default())
+        .with(HealthBar {
+            value: 100,
+            rect: (),
+            allegiance: Team::Enemy,
+            damageableAt: 0,
+        })
         .with(transform)
         .with(animation)
         .build();

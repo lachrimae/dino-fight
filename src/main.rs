@@ -44,7 +44,8 @@ fn main() -> amethyst::Result<()> {
             systems::HeroMovementSystem {},
             "hero_movement_system",
             &["input_system"]
-        );
+        )
+        .with(systems::HealthSystem {}, "health_system", &["dino_animation_system"]);
 
     let assets_dir = app_root.join("assets");
     let mut game = Application::new(assets_dir, DinoFight::default(), game_data)?;
