@@ -51,12 +51,16 @@ impl<'s> System<'s> for AiIntentSystem {
                     } else {
                         // the run away policy
                         ai_intent.state = DinoState::Normal;
-                        ai_intent.rx = -magnitude * direction.x;
-                        ai_intent.ry = -magnitude * direction.y;
+                        if magnitude == 0. {
+                            ai_intent.rx = 1.;
+                            ai_intent.ry = 1.;
+                        } else {
+                            ai_intent.rx = position[0] - magnitude * direction.x;
+                            ai_intent.ry = position[1] - magnitude * direction.y;
+                        }
                     }
                 }
             }
-            println!("intent: {:?}", ai_intent);
         }
     }
 }

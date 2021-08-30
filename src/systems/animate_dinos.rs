@@ -1,10 +1,11 @@
 use amethyst::{
     core::timing::Time,
-    ecs::{Entities, Join, Read, WriteStorage, System},
+    core::transform::Transform,
+    ecs::{Entities, Join, Read, ReadStorage, WriteStorage, System},
     renderer::SpriteRender,
 };
 
-use crate::dino::{ARENA_HEIGHT, ARENA_WIDTH, Animation, DamageEffect, DespawnTimer, Dino, DinoState, Team};
+use crate::dino::{Animation, DamageEffect, DespawnTimer, Dino, DinoState, Team};
 use crate::geometry::Rectangle;
 
 pub struct DinoAnimationSystem {}
@@ -16,17 +17,18 @@ impl<'s> System<'s> for DinoAnimationSystem {
         WriteStorage<'s, Dino>,
         WriteStorage<'s, DamageEffect>,
         WriteStorage<'s, DespawnTimer>,
+        ReadStorage<'s, Transform>,
         Read<'s, Time>,
         Entities<'s>
     );
 
-    fn run(&mut self, (mut animations, mut renders, mut dinos, mut damage_effects, mut despawn_timers, time, entities): Self::SystemData) {
+    fn run(&mut self, (mut animations, mut renders, mut dinos, mut damage_effects, mut despawn_timers, transforms, time, entities): Self::SystemData) {
         // possible optimization:
         // Here we write to every dino's animation every loop.
         // It may be worth tracking state transitions in a
         // state enum field and only writing the other fields
         // if they need to change.
-        for (animation, sprite, dino) in (&mut animations, &mut renders, &mut dinos).join() {
+        for (animation, sprite, dino, transform) in (&mut animations, &mut renders, &mut dinos, &transforms).join() {
             if dino.state == DinoState::Bonking {
                 animation.frames = 4;
                 animation.frame_duration = 5;
@@ -50,17 +52,21 @@ impl<'s> System<'s> for DinoAnimationSystem {
                 // bad. But I'm doing it anyways.
                 if dino.state == DinoState::Bonking {
                     if (delta / animation.frame_duration) as i32 >= 2 {
+                        let width = 4.;
+                        let height = 4.;
+                        let pos = transform.translation();
                         println!("Making a damage effect!");
+                        println!("centered at {:?}", pos);
                         entities.build_entity()
                             .with(
                                 DamageEffect {
                                     value: 15,
                                     targets: Team::Enemy,
                                     rect: Rectangle {
-                                        x1: 0.,
-                                        x2: ARENA_WIDTH,
-                                        y1: 0.,
-                                        y2: ARENA_HEIGHT,
+                                        x1: pos[0] - width / 2.,
+                                        x2: pos[0] + width / 2.,
+                                        y1: pos[1] - height / 2.,
+                                        y2: pos[1] + height / 2.,
                                     },
                                 },
                                 &mut damage_effects,
