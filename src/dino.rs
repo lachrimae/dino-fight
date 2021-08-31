@@ -52,6 +52,15 @@ pub enum Team {
     Enemy,
 }
 
+impl Team {
+    pub fn not(team: &Team) -> Team {
+        match team {
+            Team::Player => Team::Enemy,
+            Team::Enemy => Team::Player,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct AiIntent {
     pub state: DinoState,
@@ -77,23 +86,25 @@ pub struct Dino {
     pub last_change_in_loc: Vector3<f32>,
     pub state: DinoState,
     pub last_state_transition: u64,
+    pub allegiance: Team,
 }
 
 impl Dino {
-    fn new() -> Dino {
+    fn new(allegiance: Team) -> Dino {
         Dino {
             width: DINO_WIDTH,
             height: DINO_HEIGHT,
             last_change_in_loc: Vector3::new(0., 0., 0.),
             state: DinoState::Normal,
             last_state_transition: 0,
+            allegiance,
         }
     }
 }
 
 impl Default for Dino {
     fn default() -> Dino {
-        Dino::new()
+        Dino::new(Team::Enemy)
     }
 }
 
@@ -175,7 +186,7 @@ fn initialise_hero(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) 
         .create_entity()
         .with(sprite_render)
         .with(Hero::default())
-        .with(Dino::default())
+        .with(Dino::new(Team::Player))
         .with(HealthBar {
             value: 150,
             damageable_at: 0,

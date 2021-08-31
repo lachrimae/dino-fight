@@ -59,7 +59,7 @@ impl<'s> System<'s> for DinoAnimationSystem {
                             .with(
                                 DamageEffect {
                                     value: 15,
-                                    targets: Team::Enemy,
+                                    targets: Team::not(&dino.allegiance),
                                     rect: Rectangle {
                                         x1: pos[0] - width / 2.,
                                         x2: pos[0] + width / 2.,
