@@ -7,14 +7,6 @@ use amethyst::{
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
 };
 
-// Naming conventions unique to this project:
-// dx and dy are changes in position
-// rx and ry are "requested" positions which must be
-//   resolved by another system
-//
-// If needed, rdx is a requested change in position
-// and dry is a change in requested position.
-
 use crate::geometry::Rectangle;
 
 pub const ARENA_HEIGHT: f32 = 100.0;
