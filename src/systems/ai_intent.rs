@@ -113,12 +113,12 @@ where
     I: Iterator<Item = A>,
     F: Fn(&A) -> f32,
 {
-    let mut added = 0;
+    let mut pushed = 0;
     let mut smallest: Vec<A> = Vec::new();
     for a in it {
-        if added < k {
+        if pushed < k {
             smallest.push(a);
-            added += 1;
+            pushed += 1;
         } else {
             let mut index_at_max: Option<usize> = None;
             for (n, entry) in smallest.iter().enumerate() {
