@@ -1,0 +1,3 @@
+I downloaded the dino images in the `/assets/texture` directory from https://arks.itch.io/dino-characters in August 2021. The creator of those assets had the following licensing statement:
+
+You can use these for what ever you'd like, but be sure to tag my twitter @ScissorMarks and credit me properly.
