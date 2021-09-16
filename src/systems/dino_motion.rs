@@ -7,17 +7,19 @@ use amethyst::{
 
 use std::f32::consts::PI;
 
-use dino::{AiIntent, Dino, DinoState, VectorKind, ARENA_HEIGHT, ARENA_WIDTH};
+use dino::{DinoIntent, Dino, DinoState, VectorKind, ARENA_HEIGHT, ARENA_WIDTH};
 
-const MAX_DINO_ACCELERATION: f32 = 0.1;
-const MAX_DINO_VELOCITY: f32 = 0.9;
+const MAX_NORMAL_DINO_ACCELERATION: f32 = 0.12;
+const MAX_NORMAL_DINO_VELOCITY: f32 = 0.9;
+const MAX_BOOSTING_DINO_ACCELERATION: f32 = 0.18;
+const MAX_BOOSTING_DINO_VELOCITY: f32 = 2.;
 
 pub struct DinoMotionSystem {}
 
 impl<'s> System<'s> for DinoMotionSystem {
     type SystemData = (
         WriteStorage<'s, Dino>,
-        ReadStorage<'s, AiIntent>,
+        ReadStorage<'s, DinoIntent>,
         WriteStorage<'s, Transform>,
         Read<'s, Time>,
     );
@@ -33,6 +35,7 @@ impl<'s> System<'s> for DinoMotionSystem {
                 dino.last_change_in_loc[0] = 0.;
                 dino.last_change_in_loc[1] = 0.;
             } else {
+                dino.state = dino_intent.state;
                 let old_loc = transform.translation().clone();
                 match dino_intent.vec_kind {
                     VectorKind::Position => {
@@ -41,7 +44,7 @@ impl<'s> System<'s> for DinoMotionSystem {
                         )
                             .try_normalize(0.)
                             .unwrap_or(Vector3::new(0., 0., 0.))
-                            * MAX_DINO_ACCELERATION;
+                            * MAX_NORMAL_DINO_ACCELERATION;
                         update_velocity(&acceleration, &mut dino, &mut transform);
                     },
                     VectorKind::Velocity => {
@@ -58,13 +61,23 @@ impl<'s> System<'s> for DinoMotionSystem {
 }
 
 fn update_velocity(acceleration: &Vector3<f32>, dino: &mut Dino, transform: &mut Transform) {
+    let max_dino_acceleration = match dino.state {
+        DinoState::Normal => MAX_NORMAL_DINO_ACCELERATION,
+        DinoState::Bonking => MAX_NORMAL_DINO_ACCELERATION,
+        DinoState::Boosting => MAX_BOOSTING_DINO_ACCELERATION,
+    };
+    let max_dino_velocity = match dino.state {
+        DinoState::Normal => MAX_NORMAL_DINO_VELOCITY,
+        DinoState::Bonking => MAX_NORMAL_DINO_VELOCITY,
+        DinoState::Boosting => MAX_BOOSTING_DINO_VELOCITY,
+    };
     // handle acceleration constraints
     {
         // we're going to be mutating this
         let mut acceleration = acceleration.clone();
         let magnitude = acceleration.magnitude();
-        if magnitude > MAX_DINO_ACCELERATION {
-            acceleration = (MAX_DINO_ACCELERATION / magnitude) * acceleration
+        if magnitude > max_dino_acceleration {
+            acceleration = (max_dino_acceleration / magnitude) * acceleration
         }
         dino.last_change_in_loc = dino.last_change_in_loc + acceleration;
     }
@@ -73,8 +86,8 @@ fn update_velocity(acceleration: &Vector3<f32>, dino: &mut Dino, transform: &mut
     {
         let original_change_in_loc = dino.last_change_in_loc.clone();
         let magnitude = dino.last_change_in_loc.norm();
-        if magnitude > MAX_DINO_VELOCITY {
-            dino.last_change_in_loc = dino.last_change_in_loc * (MAX_DINO_VELOCITY / magnitude);
+        if magnitude > max_dino_velocity {
+            dino.last_change_in_loc = dino.last_change_in_loc * (max_dino_velocity / magnitude);
         }
     }
 

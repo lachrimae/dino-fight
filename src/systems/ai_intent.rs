@@ -4,7 +4,7 @@ use amethyst::{
     core::math::Vector3,
 };
 
-use dino::{AiIntent, Dino, DinoState, HealthBar, Team, VectorKind};
+use dino::{Ai, DinoIntent, Dino, DinoState, HealthBar, Team, VectorKind};
 use geometry;
 
 use std::cmp::Ordering;
@@ -17,14 +17,15 @@ const COMFORTABLE_WITH_NEIGHBOURS_THRESHOLD: f32 = 0.5;
 
 impl<'s> System<'s> for AiIntentSystem {
     type SystemData = (
+        ReadStorage<'s, Ai>,
         ReadStorage<'s, Dino>,
         ReadStorage<'s, Transform>,
         ReadStorage<'s, HealthBar>,
-        WriteStorage<'s, AiIntent>,
+        WriteStorage<'s, DinoIntent>,
     );
 
-    fn run(&mut self, (dinos, transforms, health_bars, mut ai_intents): Self::SystemData) {
-        for (dino, transform, health_bar, ai_intent) in (&dinos, &transforms, &health_bars, &mut ai_intents).join() {
+    fn run(&mut self, (ai, dinos, transforms, health_bars, mut ai_intents): Self::SystemData) {
+        for (_ai, dino, transform, health_bar, ai_intent) in (&ai, &dinos, &transforms, &health_bars, &mut ai_intents).join() {
             let ai_position = transform.translation();
             if dino.state != DinoState::Bonking {
                 match (&health_bars)

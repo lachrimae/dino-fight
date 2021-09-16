@@ -15,6 +15,12 @@ pub const ARENA_WIDTH: f32 = 100.0;
 pub const DINO_HEIGHT: f32 = 24.0;
 pub const DINO_WIDTH: f32 = 24.0;
 
+pub struct Ai {}
+
+impl Component for Ai {
+    type Storage = VecStorage<Self>;
+}
+
 pub struct Animation {
     pub frames: i32,
     pub frame_duration: u64,
@@ -25,10 +31,11 @@ impl Component for Animation {
     type Storage = DenseVecStorage<Self>;
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum DinoState {
     Normal,
     Bonking,
+    Boosting,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -54,13 +61,13 @@ impl Team {
 }
 
 #[derive(Debug)]
-pub struct AiIntent {
+pub struct DinoIntent {
     pub state: DinoState,
     pub vec_kind: VectorKind,
     pub requested_vec: Vector3<f32>,
 }
 
-impl Component for AiIntent {
+impl Component for DinoIntent {
     type Storage = VecStorage<Self>;
 }
 
@@ -174,10 +181,17 @@ fn initialise_hero(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) 
         first_sprite_index: 0,
     };
 
+    let intent = DinoIntent {
+        state: DinoState::Normal,
+        requested_vec: Vector3::new(0., 0., 0.),
+        vec_kind: VectorKind::Velocity,
+    };
+
     world
         .create_entity()
         .with(sprite_render)
         .with(Hero::default())
+        .with(intent)
         .with(Dino::new(Team::Player))
         .with(HealthBar {
             value: 150,
@@ -204,7 +218,7 @@ fn initialise_dinos(world: &mut World, handle1: Handle<SpriteSheet>, _handle2: H
     };
 
     let pos = transform.translation();
-    let intent = AiIntent {
+    let intent = DinoIntent {
         state: DinoState::Normal,
         requested_vec: pos.clone(),
         vec_kind: VectorKind::Velocity,
@@ -216,6 +230,7 @@ fn initialise_dinos(world: &mut World, handle1: Handle<SpriteSheet>, _handle2: H
         .create_entity()
         .with(sprite_render)
         .with(Dino::default())
+        .with(Ai {})
         .with(HealthBar {
             value: 100,
             rect: Rectangle {

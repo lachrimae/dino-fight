@@ -46,8 +46,8 @@ fn main() -> amethyst::Result<()> {
         .with(systems::AiIntentSystem {}, "ai_intent_system", &["hitbox_tracking_system"])
         .with(systems::DinoMotionSystem {}, "dino_motion_system", &["ai_intent_system", "dino_animation_system"])
         .with(
-            systems::HeroMovementSystem {},
-            "hero_movement_system",
+            systems::HeroIntentSystem {},
+            "hero_intent_system",
             &["input_system"]
         )
         .with(systems::HealthSystem {}, "health_system", &["dino_animation_system"]);

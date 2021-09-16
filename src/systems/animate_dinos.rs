@@ -33,6 +33,10 @@ impl<'s> System<'s> for DinoAnimationSystem {
                 animation.frames = 4;
                 animation.frame_duration = 5;
                 animation.first_sprite_index = 10;
+            } else if dino.state == DinoState::Boosting {
+                animation.frames = 7;
+                animation.frame_duration = 5;
+                animation.first_sprite_index = 17;
             } else if dino.last_change_in_loc.norm() > 0. {
                 animation.frames = 6;
                 animation.frame_duration = 5;
