@@ -44,7 +44,7 @@ fn main() -> amethyst::Result<()> {
         .with(systems::HitboxTrackingSystem {}, "hitbox_tracking_system", &[])
         .with(systems::DinoAnimationSystem {}, "dino_animation_system", &["despawn_system"])
         .with(systems::AiIntentSystem {}, "ai_intent_system", &["hitbox_tracking_system"])
-        .with(systems::AiMotionSystem {}, "ai_motion_system", &["ai_intent_system", "dino_animation_system"])
+        .with(systems::DinoMotionSystem {}, "dino_motion_system", &["ai_intent_system", "dino_animation_system"])
         .with(
             systems::HeroMovementSystem {},
             "hero_movement_system",
