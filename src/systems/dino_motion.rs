@@ -11,7 +11,7 @@ use dino::{DinoIntent, Dino, DinoState, VectorKind, ARENA_HEIGHT, ARENA_WIDTH};
 
 const MAX_NORMAL_DINO_ACCELERATION: f32 = 0.12;
 const MAX_NORMAL_DINO_VELOCITY: f32 = 0.9;
-const MAX_BOOSTING_DINO_ACCELERATION: f32 = 0.18;
+const MAX_BOOSTING_DINO_ACCELERATION: f32 = 0.15;
 const MAX_BOOSTING_DINO_VELOCITY: f32 = 2.;
 
 pub struct DinoMotionSystem {}
