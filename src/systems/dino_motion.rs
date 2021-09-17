@@ -84,7 +84,6 @@ fn update_velocity(acceleration: &Vector3<f32>, dino: &mut Dino, transform: &mut
 
     // handle velocity constraints
     {
-        let original_change_in_loc = dino.last_change_in_loc.clone();
         let magnitude = dino.last_change_in_loc.norm();
         if magnitude > max_dino_velocity {
             dino.last_change_in_loc = dino.last_change_in_loc * (max_dino_velocity / magnitude);

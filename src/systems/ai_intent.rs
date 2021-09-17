@@ -8,7 +8,6 @@ use dino::{Ai, DinoIntent, Dino, DinoState, HealthBar, Team, VectorKind};
 use geometry;
 
 use std::cmp::Ordering;
-use std::slice::SliceIndex;
 
 pub struct AiIntentSystem {}
 
@@ -62,7 +61,7 @@ impl<'s> System<'s> for AiIntentSystem {
                         } else {
                             let dino_locations = (&dinos, &transforms).join();
                             let closest = get_k_smallest_by(NEIGHBOURHOOD_SIZE, dino_locations, |(_neighbour_dino, neighbour_transform)| {
-                                let neighbour_position = transform.translation();
+                                let neighbour_position = neighbour_transform.translation();
                                 let delta = (ai_position - neighbour_position).norm();
                                 delta
                             });

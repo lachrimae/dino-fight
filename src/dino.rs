@@ -9,8 +9,8 @@ use amethyst::{
 
 use crate::geometry::Rectangle;
 
-pub const ARENA_HEIGHT: f32 = 100.0;
-pub const ARENA_WIDTH: f32 = 100.0;
+pub const ARENA_HEIGHT: f32 = 200.0;
+pub const ARENA_WIDTH: f32 = 200.0;
 
 pub const DINO_HEIGHT: f32 = 24.0;
 pub const DINO_WIDTH: f32 = 24.0;

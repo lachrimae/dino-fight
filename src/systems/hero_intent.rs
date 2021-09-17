@@ -1,12 +1,10 @@
 use amethyst::{
-    core::transform::Transform,
-    core::timing::Time,
     core::math::Vector3,
     ecs::{Join, Read, ReadStorage, System, WriteStorage},
     input::{InputHandler, StringBindings},
 };
 
-use crate::dino::{Hero, Dino, DinoState, VectorKind, DinoIntent, ARENA_HEIGHT, ARENA_WIDTH};
+use crate::dino::{Hero, DinoState, VectorKind, DinoIntent};
 
 pub struct HeroIntentSystem {}
 
@@ -15,10 +13,9 @@ impl<'s> System<'s> for HeroIntentSystem {
         ReadStorage<'s, Hero>,
         WriteStorage<'s, DinoIntent>,
         Read<'s, InputHandler<StringBindings>>,
-        Read<'s, Time>,
     );
 
-    fn run(&mut self, (heroes, mut dino_intents, input, time): Self::SystemData) {
+    fn run(&mut self, (heroes, mut dino_intents, input): Self::SystemData) {
         for (_hero, intent) in (&heroes, &mut dino_intents).join() {
             let r_bonk = input.action_is_down("bonk").unwrap_or(false);
             let r_boost = input.action_is_down("boost").unwrap_or(false);
