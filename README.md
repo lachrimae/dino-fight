@@ -5,4 +5,4 @@ While the project still builds on my laptop, it now crashes at startup time beca
 
 Here is what the dino sprites looked like:
 
-[dino sprite](assets/texture/doux.png)
+![dino sprite](assets/texture/doux.png)
